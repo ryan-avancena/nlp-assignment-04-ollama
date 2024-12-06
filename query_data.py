@@ -1,14 +1,14 @@
 import argparse
 from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
-# from langchain_community.llms.ollama import Ollama
 from langchain_ollama import OllamaLLM
 from get_embedding_function import get_embedding_function
 
 CHROMA_PATH = "chroma"
 
 PROMPT_TEMPLATE = """
-You are a knowledgeable and friendly college advisor. Answer the student's question in a clear, concise, and helpful way, using the provided context.
+You are a knowledgeable and friendly Computer Science college advisor at California State University, Fullerton. 
+Answer the student's question in a clear, concise, and helpful way, using the provided context.
 
 Context:
 {context}
@@ -34,8 +34,24 @@ Answer the question based on the above context: {question}
 def main():
     # Create CLI.
     # parser = argparse.ArgumentParser()
-    # query_rag("what classes are available?")
-    query_rag("does the computer science department offer any cybersecurity related classes?")
+
+    history = ""
+
+    ''' QUERYING THE TEXT '''
+
+    response = None
+    print("Hello, I'm a Chatbot from California State University, Fullerton! Ask me any questions! Type 'quit' to leave the interactive session.")
+    while response != 'quit':
+        input_query = input("")
+        response = query_rag(input_query)
+        # print(response)
+        # history = history + " " + response
+
+    # query_rag("What classes are available?")
+    # query_rag("Does the computer science department offer any cybersecurity related classes?")
+    # query_rag("Where can I go for undergraduate advising?")
+    # query_rag("I'm thinking about applying for my master's, what graduate classes are offered at CSUF?")
+
     # parser.add_argument("query_text", type=str, help="The query text.")
     # args = parser.parse_args()
     # query_text = args.query_text
@@ -49,7 +65,6 @@ def query_rag(query_text: str):
 
     # Search the DB.
     results = db.similarity_search_with_score(query_text, k=5)
-
     # print(results)
     # print("Database searched.")
 
@@ -62,6 +77,7 @@ def query_rag(query_text: str):
     response_text = model.invoke(prompt)
 
     sources = [doc.metadata.get("id", None) for doc, _score in results]
+
     formatted_response = f"Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
