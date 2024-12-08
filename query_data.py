@@ -30,76 +30,70 @@ Answer the question based only on the following context:
 Answer the question based on the above context: {question}
 """
 
-
 def main():
-    # Create CLI.
-    # parser = argparse.ArgumentParser()
+    history = ""  # Initialize conversation history.
 
-    history = ""
-
-    ''' QUERYING THE TEXT '''
-
-    response = None
     print("Hello, I'm a Chatbot from California State University, Fullerton! Ask me any questions! Type 'quit' to leave the interactive session.")
-    while response != 'quit':
-        input_query = input("")
-        response = query_rag(input_query)
-        # print(response)
-        # history = history + " " + response
+    while True:
+        input_query = input(">>> ")
+        print("")
+        if input_query.lower() == 'quit':
+            break  # Exit the loop if the user types 'quit'.
 
-    # query_rag("What classes are available?")
-    # query_rag("Does the computer science department offer any cybersecurity related classes?")
-    # query_rag("Where can I go for undergraduate advising?")
-    # query_rag("I'm thinking about applying for my master's, what graduate classes are offered at CSUF?")
+        # Pass the history to the query function and get the response.
+        response = query_rag(input_query, history)
+        print(response)
+        
+        # Append the current query and response to the history.
+        history += f"Student's Question: {input_query}\nAdvisor's Answer: {response}\n\n"
 
-    # parser.add_argument("query_text", type=str, help="The query text.")
-    # args = parser.parse_args()
-    # query_text = args.query_text
-    # query_rag(query_text)
+        # Optionally truncate history to avoid exceeding token limits.
+        max_history_length = 5000  # Adjust based on model token limits.
+        if len(history) > max_history_length:
+            history = history[-max_history_length:]
+
+        print("")  # Add an empty line for better readability.
 
 
-def query_rag(query_text: str) -> str:
-    # Prepare the Chroma database with the embedding function
+def query_rag(query_text: str, history: str) -> str:
+    # Prepare the Chroma database with the embedding function.
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)  
 
-    # Search the database for the most relevant documents
-    results = db.similarity_search_with_score(query_text, k=5)
+    # Search the database for the most relevant documents.
+    results = db.similarity_search_with_score(query_text, k=3)
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
 
-    # Prepare the prompt
-    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    prompt = prompt_template.format(context=context_text, question=query_text)
+    # Combine history with the current context.
+    full_prompt = f"""
+Previous Conversation:
+{history}
 
-    # Initialize the model with JSON output format
-    model = OllamaLLM(model="llama3.1", output_format="json")  # Explicitly set output_format to JSON
-    # Get the model's response
-    try:
-        response_text = model.invoke(prompt)
-    except Exception as e:
-        response_text = f"Error occurred: {str(e)}"
+Current Context:
+{context_text}
 
-    # Extract sources for reference
-    sources = [doc.metadata.get("id", "unknown") for doc, _score in results]
+---
 
-    # Debug: Log the raw response
-    print(f"Raw response: {response_text}")
+Student's Question: {query_text}
 
-    print("-")
-    print("---")
-    print("-")
+Advisor's Answer:
+"""
 
-    return response_text    
+    # Initialize the model.
+    model = OllamaLLM(model="llama3")  # Explicitly set output_format to JSON.
+    response_text = model.invoke(full_prompt)
+
+    return response_text
+
 
 if __name__ == "__main__":
-    
-    # main()
-    
-    model = OllamaLLM(model="llama3.2", output_format="json")
 
-    # Prepare your prompt string
-    prompt_string = "What is the capital of California?"
+    '''
+    Questions to ask:
 
-    # Make the call
-    response = model.invoke(prompt_string)
-    print(response)
+        What classes are available?
+        Does the computer science department offer any cybersecurity related classes?
+        Where can I go for undergraduate advising?
+        I'm thinking about applying for my master's, what graduate classes are offered at CSUF?
+    '''
+    main()

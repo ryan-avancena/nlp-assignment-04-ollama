@@ -1,7 +1,7 @@
 import argparse
 import os
 import shutil
-from langchain.document_loaders import PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from get_embedding_function import get_embedding_function
@@ -103,40 +103,6 @@ def clean_metadata(metadata):
     else:
         # Replace None with an empty string or other placeholder
         return metadata if metadata is not None else ""
-
-# def add_to_chroma(chunks: list[Document]):
-#     # Load the existing database.
-#     db = Chroma(
-#         persist_directory=CHROMA_PATH, embedding_function=get_embedding_function()
-#     )
-
-#     # Calculate Page IDs.
-#     chunks_with_ids = calculate_chunk_ids(chunks)  # Ensure this is a list of Document objects
-
-#     # Clean metadata for each chunk (remove complex structures and replace None values)
-#     for chunk in chunks_with_ids:
-#         chunk.metadata = clean_metadata(chunk.metadata)
-
-#     # Add or Update the documents.
-#     existing_items = db.get(include=[])  # IDs are always included by default
-#     existing_ids = set(existing_items["ids"])
-#     print(f"Number of existing documents in DB: {len(existing_ids)}")
-
-#     # Only add documents that don't exist in the DB.
-#     new_chunks = []
-#     for chunk in chunks_with_ids:
-#         chunk_id = chunk.metadata.get("id")
-#         if chunk_id not in existing_ids:
-#             new_chunks.append(chunk)
-
-#     if len(new_chunks):
-#         print(f"👉 Adding new documents: {len(new_chunks)}")
-#         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
-#         print(f"New Chunk IDs: {new_chunk_ids[:3]}")  # Print a sample of new IDs
-#         db.add_documents(new_chunks, ids=new_chunk_ids)
-#         db.persist()
-#     else:
-#         print("✅ No new documents to add")
 
 def split_batches(documents, ids, batch_size=41666):
     """
