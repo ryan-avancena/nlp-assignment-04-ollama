@@ -1,0 +1,4 @@
+beautifulsoup4==4.12.2 # for parsing HTML and XML documents
+requests==2.31.0 # to allow send HTTP requests for interacting with Web scraping or Web APIs
+tqdm # for the generation of progress bars
+pymongo # MongoDB driver for synchronous Python applications
